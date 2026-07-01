@@ -1,0 +1,57 @@
+name: Auto-apply Copilot Instructions to New Repos
+
+on:
+  schedule:
+    # Runs daily at 6 AM UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+    inputs:
+      force_update:
+        description: 'Force update even if file exists'
+        type: boolean
+        default: false
+
+jobs:
+  sync-copilot-instructions:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout .github repo
+        uses: actions/checkout@v4
+
+      - name: Apply Copilot Instructions to all org repos
+        env:
+          GH_TOKEN: ${{ secrets.ORG_AUTOMATION_TOKEN }}
+          ORG: BEAUTIFUL-MINDS-COMPANIES
+          FORCE_UPDATE: ${{ inputs.force_update || 'false' }}
+        run: |
+          FILE_PATH=".github/copilot-instructions.md"
+          COMMIT_MSG="chore: sync Copilot instructions from org .github"
+          ENCODED=$(base64 -w 0 < "copilot-instructions.md")
+
+          gh repo list "$ORG" --limit 200 --json name --jq '.[].name' | while read repo; do
+            echo "Processing $ORG/$repo..."
+
+            # Get default branch
+            default_branch=$(gh api "repos/$ORG/$repo" --jq '.default_branch' 2>/dev/null) || continue
+
+            # Check if file exists
+            sha=$(gh api "repos/$ORG/$repo/contents/$FILE_PATH" --jq '.sha' 2>/dev/null || echo "")
+
+            if [ -z "$sha" ] || [ "$FORCE_UPDATE" = "true" ]; then
+              if [ -n "$sha" ]; then
+                gh api --method PUT "repos/$ORG/$repo/contents/$FILE_PATH" \
+                  -f message="$COMMIT_MSG" \
+                  -f content="$ENCODED" \
+                  -f sha="$sha" --silent && echo "  UPDATED: $repo" || echo "  FAILED: $repo"
+              else
+                gh api --method PUT "repos/$ORG/$repo/contents/$FILE_PATH" \
+                  -f message="$COMMIT_MSG" \
+                  -f content="$ENCODED" --silent && echo "  CREATED: $repo" || echo "  FAILED: $repo"
+              fi
+            else
+              echo "  SKIPPED (exists): $repo"
+            fi
+          done
