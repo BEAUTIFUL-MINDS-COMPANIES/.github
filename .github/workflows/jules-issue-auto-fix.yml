@@ -1,0 +1,28 @@
+name: Jules Issue Auto Fix
+
+on:
+  issues:
+    types: [opened, reopened, labeled]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: Issue number for Jules to work on
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  jules-fix:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.action != 'labeled' || github.event.label.name == 'jules' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Invoke Jules on issue
+        uses: google-labs-jules/invoke@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.issue.number || inputs.issue_number }}
