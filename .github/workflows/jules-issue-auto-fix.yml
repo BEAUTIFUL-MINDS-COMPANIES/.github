@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Invoke Jules issue solver
-        uses: google-labs-code/jules-invoke@v1
+        uses: google-labs-code/jules-action@v1
         with:
           prompt: |
             You are an issue-resolution agent.
