@@ -1,4 +1,4 @@
-# GitHub Copilot Instructions
+# Jules Instructions
 
 ## Project Overview
 This repository is part of the ASCENIX / BMOPS / BEAUTIFUL-MINDS ecosystem — an enterprise-grade multi-platform workspace spanning iOS/macOS, Google Workspace, web services, and AI agent orchestration.

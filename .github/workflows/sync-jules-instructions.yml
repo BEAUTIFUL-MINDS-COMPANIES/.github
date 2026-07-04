@@ -1,4 +1,4 @@
-name: Auto-apply Copilot Instructions to New Repos
+name: Auto-apply Jules Instructions to New Repos
 
 on:
   schedule:
@@ -12,7 +12,7 @@ on:
         default: false
 
 jobs:
-  sync-copilot-instructions:
+  sync-jules-instructions:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -21,15 +21,15 @@ jobs:
       - name: Checkout .github repo
         uses: actions/checkout@v4
 
-      - name: Apply Copilot Instructions to all org repos
+      - name: Apply Jules Instructions to all org repos
         env:
           GH_TOKEN: ${{ secrets.ORG_AUTOMATION_TOKEN }}
           ORG: BEAUTIFUL-MINDS-COMPANIES
           FORCE_UPDATE: ${{ inputs.force_update || 'false' }}
         run: |
-          FILE_PATH=".github/copilot-instructions.md"
-          COMMIT_MSG="chore: sync Copilot instructions from org .github"
-          ENCODED=$(base64 -w 0 < "copilot-instructions.md")
+          FILE_PATH=".github/jules-instructions.md"
+          COMMIT_MSG="chore: sync Jules instructions from org .github"
+          ENCODED=$(base64 -w 0 < "jules-instructions.md")
 
           gh repo list "$ORG" --limit 200 --json name --jq '.[].name' | while read repo; do
             echo "Processing $ORG/$repo..."
