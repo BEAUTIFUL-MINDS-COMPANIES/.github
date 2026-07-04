@@ -21,9 +21,21 @@ jobs:
       - name: Checkout .github repo
         uses: actions/checkout@v4
 
+      - name: Generate bmops-ascenix app token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          # bmops-ascenix GitHub App (owner: AsceniX_admin). The Client ID is a public
+          # identifier, not a secret; override via an Actions variable if you prefer.
+          app-id: ${{ vars.BMOPS_ASCENIX_CLIENT_ID || 'Iv23licfZY7wqhkk1g9B' }}
+          private-key: ${{ secrets.BMOPS_ASCENIX_PRIVATE_KEY }}
+          # Mint an installation token scoped across the whole org so the loop below
+          # can write jules-instructions.md into every repo the App is installed on.
+          owner: BEAUTIFUL-MINDS-COMPANIES
+
       - name: Apply Jules Instructions to all org repos
         env:
-          GH_TOKEN: ${{ secrets.ORG_AUTOMATION_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
           ORG: BEAUTIFUL-MINDS-COMPANIES
           FORCE_UPDATE: ${{ inputs.force_update || 'false' }}
         run: |
